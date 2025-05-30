@@ -61,11 +61,14 @@ self.addEventListener('fetch', event => {
             // to clone it so we have two streams.
             const responseToCache = response.clone();
 
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                // Cache basic, cors, and opaque responses. Opaque are for no-cors CDN resources.
-                cache.put(event.request, responseToCache);
-              });
+            // Only cache GET requests
+            if (event.request.method === 'GET') {
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                  // Cache basic, cors, and opaque responses. Opaque are for no-cors CDN resources.
+                  cache.put(event.request, responseToCache);
+                });
+            }
 
             return response;
           }
