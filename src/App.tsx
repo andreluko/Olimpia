@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { HashRouter, Routes, Route, Link } from 'react-router-dom';
 import CalendarView from './components/CalendarView';
@@ -32,6 +33,7 @@ const App: React.FC = () => {
         </main>
         <footer className="mt-8 text-center text-slate-600 w-full max-w-4xl">
             <p className="mb-2">&copy; 2024 AI Studio Project. Веселого и полезного лета!</p>
+            <p className="text-sm text-slate-500 mb-2">Задания ориентированы на детей младшего школьного возраста (примерно 6-8 лет).</p>
             <div className="flex justify-center space-x-4">
               <Link to="/stats" className="text-blue-600 hover:underline">Статистика для родителей</Link>
               <Link to="/achievements" className="text-amber-600 hover:underline">🏆 Мои Достижения</Link>
