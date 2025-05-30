@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { Link } from 'react-router-dom';
+import { Task, AnswerInputType } from '../types'; // Импортируем типы
 
 const ParentStatsView: React.FC = () => {
   const { schedule, getDayCompletionStatus, resetAllProgress } = useAppContext();
@@ -28,6 +29,33 @@ const ParentStatsView: React.FC = () => {
     }
   };
 
+  const formatCorrectAnswerForDisplay = (task: Task): string => {
+    const { correctAnswer, answerInputType, options } = task;
+
+    if (answerInputType === AnswerInputType.PARENT_CHECK) {
+        // Для PARENT_CHECK, correctAnswer часто содержит текстовое описание, что проверять
+        return typeof correctAnswer === 'string' ? correctAnswer : "Проверяется родителем";
+    }
+    if (answerInputType === AnswerInputType.RADIO && options && typeof correctAnswer === 'string') {
+        const correctOption = options.find(opt => opt.id === correctAnswer);
+        return correctOption ? correctOption.text : String(correctAnswer);
+    }
+    if (answerInputType === AnswerInputType.CHECKBOX && options && Array.isArray(correctAnswer)) {
+        const correctOptionsTexts = correctAnswer
+        .map(correctId => options.find(opt => opt.id === correctId)?.text)
+        .filter(text => !!text);
+        return correctOptionsTexts.length > 0 ? correctOptionsTexts.join(', ') : "Нет верных опций";
+    }
+    if (answerInputType === AnswerInputType.TWO_NUMBERS_COMMA && Array.isArray(correctAnswer)) {
+        return correctAnswer.join(', ');
+    }
+    if (Array.isArray(correctAnswer)) {
+        return correctAnswer.join(' или '); // Если несколько текстовых вариантов
+    }
+    return String(correctAnswer);
+  };
+
+
   return (
     <div className="p-4">
       <Link to="/" className="text-blue-600 hover:underline text-sm mb-4 inline-block">&larr; К календарю</Link>
@@ -47,7 +75,7 @@ const ParentStatsView: React.FC = () => {
       </div>
 
       <h3 className="text-2xl font-semibold text-slate-700 mb-4">Прогресс по дням:</h3>
-      <div className="space-y-3">
+      <div className="space-y-3 mb-10">
         {schedule.map(day => {
           const status = getDayCompletionStatus(day.id);
           if (!status || status.totalTasks === 0) return null;
@@ -74,6 +102,39 @@ const ParentStatsView: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Раздел с ответами к заданиям */}
+      <div className="mt-10 pt-6 border-t border-slate-300">
+        <h3 className="text-2xl font-semibold text-slate-700 mb-4">Ответы к заданиям</h3>
+        <div className="space-y-6">
+          {schedule.map(day => (
+            <div key={`answers-${day.id}`} className="p-4 bg-slate-50 rounded-lg">
+              <h4 className="text-xl font-bold text-slate-800 mb-3">
+                {new Date(day.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} - {day.title}
+              </h4>
+              {day.sessions.map((session, sessionIdx) => (
+                <div key={`${day.id}-session-${sessionIdx}`} className="mb-4 last:mb-0">
+                  <h5 className="text-lg font-semibold text-indigo-700 mb-2 pl-2">{session.name}</h5>
+                  <ul className="list-none space-y-2 pl-4">
+                    {session.tasks.map(task => (
+                      <li key={task.id} className="text-sm text-slate-600 border-b border-slate-200 pb-2 last:border-b-0 last:pb-0">
+                        <p className="text-slate-700 mb-0.5">
+                          <span className="font-semibold">Вопрос:</span> {task.text} 
+                          {task.category ? <span className="text-xs text-indigo-500 ml-1">({task.category})</span> : ''}
+                        </p>
+                        <p className="text-blue-600">
+                          <span className="font-semibold">Правильный ответ:</span> {formatCorrectAnswerForDisplay(task)}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
 
       <div className="mt-10 pt-6 border-t border-slate-300">
         <h3 className="text-xl font-semibold text-red-700 mb-3">Управление данными</h3>

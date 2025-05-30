@@ -24,10 +24,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const [userAnswer, setUserAnswer] = useState<any>('');
   const [feedback, setFeedback] = useState<{ message: string; type: 'correct' | 'incorrect' } | null>(null);
   const [selectedCheckboxes, setSelectedCheckboxes] = useState<string[]>([]);
+  const [incorrectAttempts, setIncorrectAttempts] = useState<number>(0);
 
   const taskStatus = getTaskStatus(task.id);
 
   useEffect(() => {
+    setIncorrectAttempts(0); // Reset attempts when task changes
     if (taskStatus) {
       if (task.answerInputType === AnswerInputType.CHECKBOX) {
         setSelectedCheckboxes(taskStatus.answer || []);
@@ -108,12 +110,18 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
     if (task.answerInputType === AnswerInputType.PARENT_CHECK) {
         saveAnswer(task.id, 'completed', true);
         setFeedback({ message: 'Отлично, задание отмечено!', type: 'correct' });
+        setIncorrectAttempts(0);
         return;
     }
 
     const isCorrect = checkAnswer(answerToSubmit);
     saveAnswer(task.id, answerToSubmit, isCorrect);
     setFeedback({ message: isCorrect ? 'Правильно! Молодчина!' : 'Попробуй еще раз, у тебя получится!', type: isCorrect ? 'correct' : 'incorrect' });
+    if (!isCorrect) {
+      setIncorrectAttempts(prev => prev + 1);
+    } else {
+      setIncorrectAttempts(0);
+    }
   };
 
   const handleCheckboxChange = (optionId: string) => {
@@ -178,7 +186,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       {task.requiresParentalDrawing && (
         <p className="text-sm text-orange-600 bg-orange-100 p-2 rounded-md mb-4">🎨 Это задание предполагает рисование на бумаге с помощью родителя.</p>
       )}
-      {task.answerHint && !taskStatus?.isCorrect && (
+      {task.answerHint && !taskStatus?.isCorrect && incorrectAttempts >= 2 && (
          <p className="text-sm text-sky-600 bg-sky-100 p-2 rounded-md mb-4">💡 Подсказка: {task.answerHint}</p>
       )}
 
@@ -200,9 +208,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           {feedback.message}
         </div>
       )}
-      {feedback?.type === 'incorrect' && task.answerInputType !== AnswerInputType.PARENT_CHECK && typeof task.correctAnswer === 'string' && task.correctAnswer.length < 50 && (
-         <p className="text-sm text-blue-600 mt-2">Если нужна помощь, правильный ответ: {task.correctAnswer}</p>
-      )}
+      {/* Удален прямой показ правильного ответа */}
     </div>
   );
 };

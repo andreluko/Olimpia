@@ -1,3 +1,4 @@
+
 import { Achievement, AchievementCriteriaArgs, TaskCategory } from './types';
 
 const countCorrectTasksByCategory = (userProgress: AchievementCriteriaArgs['userProgress'], schedule: AchievementCriteriaArgs['schedule'], category: TaskCategory): number => {
@@ -21,7 +22,7 @@ export const achievementsDataList: Achievement[] = [
     name: 'Первый шаг сделан!',
     description: 'Выполнить свое первое задание.',
     icon: '🎉',
-    criteria: ({ userProgress }) => Object.keys(userProgress).length >= 1,
+    criteria: ({ userProgress }) => Object.values(userProgress).some(progress => progress.isCorrect === true),
   },
   {
     id: 'morning_star',
