@@ -3,7 +3,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { Link } from 'react-router-dom';
 
 const ParentStatsView: React.FC = () => {
-  const { schedule, getDayCompletionStatus } = useAppContext();
+  const { schedule, getDayCompletionStatus, resetAllProgress } = useAppContext();
 
   let totalDaysWithTasks = 0;
   let totalCompletedDays = 0;
@@ -21,6 +21,12 @@ const ParentStatsView: React.FC = () => {
       }
     }
   });
+
+  const handleResetProgress = () => {
+    if (window.confirm("Вы уверены, что хотите сбросить весь прогресс? Это действие удалит все ваши ответы, завершенные дни и полученные достижения. Это действие необратимо.")) {
+      resetAllProgress();
+    }
+  };
 
   return (
     <div className="p-4">
@@ -67,6 +73,20 @@ const ParentStatsView: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-10 pt-6 border-t border-slate-300">
+        <h3 className="text-xl font-semibold text-red-700 mb-3">Управление данными</h3>
+        <button
+          onClick={handleResetProgress}
+          className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
+          aria-label="Сбросить весь сохраненный прогресс в приложении"
+        >
+          Сбросить весь прогресс
+        </button>
+        <p className="text-sm text-slate-600 mt-2">
+          Внимание: это действие удалит все ваши ответы, завершенные дни и полученные достижения.
+        </p>
       </div>
     </div>
   );

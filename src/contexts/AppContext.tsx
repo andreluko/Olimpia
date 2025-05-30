@@ -153,6 +153,22 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     updateAllDaysCompletionStatus();
   }, [updateAllDaysCompletionStatus]);
 
+  const resetAllProgress = useCallback(() => {
+    localStorage.removeItem('olympicCalendarProgress');
+    localStorage.removeItem('olympicCalendarDayCompletion');
+    localStorage.removeItem('olympicCalendarAchievements');
+    
+    setUserProgress({});
+    setDayCompletion({});
+    setUnlockedAchievements({});
+    // setSelectedDate(null); // Optionally reset current view if needed
+
+    // The useEffect hooks listening to userProgress and dayCompletion 
+    // will automatically trigger updateAllDaysCompletionStatus and checkAndUnlockAchievements.
+    alert("Весь прогресс был сброшен. Страница будет перезагружена для применения изменений.");
+    window.location.reload(); // Reload to ensure all components re-initialize with fresh state.
+  }, []);
+
 
   return (
     <AppContext.Provider value={{ 
@@ -166,7 +182,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         setCurrentMonth,
         getDayCompletionStatus,
         achievementsData: achievementsDataList,
-        unlockedAchievements
+        unlockedAchievements,
+        resetAllProgress
     }}>
       {children}
     </AppContext.Provider>
