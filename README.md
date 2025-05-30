@@ -1,14 +1,21 @@
-# Run and deploy your AI Studio app
+# Олимпиадный Календарь
 
-This contains everything you need to run your app locally.
+Интерактивное веб-приложение "Олимпиадный Календарь", разработанное с использованием LLM для генерации и адаптации образовательного контента (промпт-инжиниринг). 
+Задания календаря основаны на глубоком исследовании материалов российских олимпиад (включая официальные источники, такие как https://роцрт.рф) и адаптированы для детей с помощью LLM. 
+Проект использует Git для контроля версий, размещен на GitHub и развернут на GitHub Pages ([https://andreluko.github.io/Olimpia/](https://andreluko.github.io/Olimpia/)). 
+Это приложение демонстрирует применение современных frontend-технологий (React, TypeScript, Vite).
 
-## Run Locally
+Весь процесс разработки задокументирован в Git-репозитории: [https://github.com/andreluko/Olimpia](https://github.com/andreluko/Olimpia)
 
-**Prerequisites:**  Node.js
+## Запуск локально
 
+**Необходимые компоненты:** Node.js
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1.  Установите зависимости:
+    ```bash
+    npm install
+    ```
+2.  Запустите приложение:
+    ```bash
+    npm run dev
+    ```
