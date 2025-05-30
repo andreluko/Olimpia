@@ -98,7 +98,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
   const handleSubmit = (e?: FormEvent) => {
     e?.preventDefault();
-    if (taskStatus?.isCorrect) return; 
+    if (taskStatus?.isCorrect && task.answerInputType !== AnswerInputType.PARENT_CHECK) return;
+    // For PARENT_CHECK, allow re-submission if needed, though typically it's a one-time mark.
+    // If taskStatus.isCorrect is true for PARENT_CHECK (meaning it's marked 'completed'), also return.
+    if (taskStatus?.isCorrect && task.answerInputType === AnswerInputType.PARENT_CHECK && taskStatus.answer === 'completed') return;
+
 
     let answerToSubmit = userAnswer;
     if (task.answerInputType === AnswerInputType.CHECKBOX) {
@@ -134,14 +138,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
     switch (task.answerInputType) {
       case AnswerInputType.TEXT:
-        return <input type="text" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} className={inputBaseClasses} />;
+        return <input type="text" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} className={inputBaseClasses} aria-label="Текстовый ответ"/>;
       case AnswerInputType.TEXTAREA:
-        return <textarea value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} rows={3} className={inputBaseClasses} />;
+        return <textarea value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} rows={3} className={inputBaseClasses} aria-label="Развернутый текстовый ответ"/>;
       case AnswerInputType.NUMBER:
-        return <input type="number" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} className={inputBaseClasses} />;
+        return <input type="number" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} className={inputBaseClasses} aria-label="Числовой ответ"/>;
       case AnswerInputType.RADIO:
         return (
-          <div className="space-y-2">
+          <div className="space-y-2" role="radiogroup" aria-labelledby={`${task.id}-label`}>
             {task.options?.map((opt: TaskOption) => (
               <label key={opt.id} className="flex items-center p-3 rounded-lg hover:bg-sky-100 cursor-pointer text-lg text-black uppercase transition-colors">
                 <input type="radio" name={task.id} value={opt.id} checked={userAnswer === opt.id} onChange={(e) => setUserAnswer(e.target.value)} className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500" />
@@ -152,7 +156,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         );
       case AnswerInputType.CHECKBOX:
         return (
-          <div className="space-y-2">
+          <div className="space-y-2" role="group" aria-labelledby={`${task.id}-label`}>
             {task.options?.map((opt: TaskOption) => (
               <label key={opt.id} className="flex items-center p-3 rounded-lg hover:bg-sky-100 cursor-pointer text-lg text-black uppercase transition-colors">
                 <input type="checkbox" value={opt.id} checked={selectedCheckboxes.includes(opt.id)} onChange={() => handleCheckboxChange(opt.id)} className="mr-3 h-5 w-5 text-blue-600 rounded focus:ring-blue-500" />
@@ -162,7 +166,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           </div>
         );
       case AnswerInputType.TWO_NUMBERS_COMMA:
-        return <input type="text" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} placeholder="Число1, Число2" className={inputBaseClasses} />;
+        return <input type="text" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} placeholder="Число1, Число2" className={inputBaseClasses} aria-label="Ответ из двух чисел через запятую"/>;
       case AnswerInputType.PARENT_CHECK:
         return <p className="text-slate-600 text-lg my-2">Это задание проверяется или выполняется с помощью родителя.</p>;
       default:
@@ -172,13 +176,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
   return (
     <div className="bg-gradient-to-br from-white via-slate-50 to-sky-50 p-6 rounded-xl mb-6">
-      <p className="text-sm text-indigo-500 font-semibold mb-1">{task.category}{task.source ? ` (${task.source})` : ''}</p>
+      <p id={`${task.id}-label`} className="text-sm text-indigo-500 font-semibold mb-1">{task.category}{task.source ? ` (${task.source})` : ''}</p>
       <p className="text-xl text-slate-800 mb-4 leading-relaxed whitespace-pre-line">{task.text}</p>
       
       {task.requiresParentalDrawing && (
         <p className="text-sm text-orange-600 bg-orange-100 p-2 rounded-md mb-4">🎨 Это задание предполагает рисование на бумаге с помощью родителя.</p>
       )}
-      {task.answerHint && !taskStatus?.isCorrect && (
+      
+      {task.answerHint && taskStatus && taskStatus.attempts !== undefined && taskStatus.attempts >= 2 && taskStatus.isCorrect === false && (
          <p className="text-sm text-sky-600 bg-sky-100 p-2 rounded-md mb-4">💡 Подсказка: {task.answerHint}</p>
       )}
 
@@ -195,13 +200,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       </form>
 
       {feedback && (
-        <div className={`mt-4 p-3 rounded-lg text-lg font-medium flex items-center gap-2 ${feedback.type === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+        <div className={`mt-4 p-3 rounded-lg text-lg font-medium flex items-center gap-2 ${feedback.type === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+             role="alert"
+        >
           {feedback.type === 'correct' ? <CheckIcon /> : <XMarkIcon />}
           {feedback.message}
         </div>
-      )}
-      {feedback?.type === 'incorrect' && task.answerInputType !== AnswerInputType.PARENT_CHECK && typeof task.correctAnswer === 'string' && task.correctAnswer.length < 50 && (
-         <p className="text-sm text-blue-600 mt-2">Если нужна помощь, правильный ответ: {task.correctAnswer}</p>
       )}
     </div>
   );

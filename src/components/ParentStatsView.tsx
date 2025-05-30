@@ -3,7 +3,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { Link } from 'react-router-dom';
 
 const ParentStatsView: React.FC = () => {
-  const { schedule, getDayCompletionStatus } = useAppContext();
+  const { schedule, getDayCompletionStatus, resetAllProgress } = useAppContext();
 
   let totalDaysWithTasks = 0;
   let totalCompletedDays = 0;
@@ -21,6 +21,11 @@ const ParentStatsView: React.FC = () => {
       }
     }
   });
+
+  const handleResetProgress = () => {
+    resetAllProgress();
+    // The view will automatically update due to context state changes
+  };
 
   return (
     <div className="p-4">
@@ -67,6 +72,19 @@ const ParentStatsView: React.FC = () => {
             </div>
           );
         })}
+         {schedule.length === 0 && <p className="text-slate-500">Нет данных о прогрессе.</p>}
+      </div>
+
+      <div className="mt-10 pt-6 border-t border-slate-300">
+        <h3 className="text-xl font-semibold text-red-600 mb-3">Опасная зона</h3>
+        <button
+          onClick={handleResetProgress}
+          className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
+          aria-label="Сбросить весь прогресс"
+        >
+          Сбросить весь прогресс
+        </button>
+        <p className="text-sm text-slate-500 mt-2">Внимание: это действие удалит все ваши ответы и достижения.</p>
       </div>
     </div>
   );

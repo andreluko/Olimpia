@@ -6,7 +6,7 @@ import { achievementsDataList } from '../achievementsData';
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [schedule] = useState<DailySchedule[]>(june2025Schedule); // setSchedule removed as schedule is static
+  const [schedule] = useState<DailySchedule[]>(june2025Schedule);
   const [userProgress, setUserProgress] = useState<UserProgress>(() => {
     const savedProgress = localStorage.getItem('olympicCalendarProgress');
     return savedProgress ? JSON.parse(savedProgress) : {};
@@ -40,7 +40,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       let hasNewUnlock = false;
       achievementsDataList.forEach(achievement => {
         if (!newUnlocks[achievement.id]) {
-          // Pass a copy of userProgress and dayCompletion to criteria to ensure it uses the latest state being processed.
           if (achievement.criteria({ userProgress, dayCompletion, schedule })) {
             newUnlocks[achievement.id] = { unlockedAt: new Date().toISOString() };
             hasNewUnlock = true;
@@ -103,23 +102,25 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('olympicCalendarProgress', JSON.stringify(userProgress));
-    updateAllDaysCompletionStatus(); // This will update dayCompletion
+    updateAllDaysCompletionStatus();
   }, [userProgress, updateAllDaysCompletionStatus]);
   
   useEffect(() => {
     localStorage.setItem('olympicCalendarDayCompletion', JSON.stringify(dayCompletion));
-    checkAndUnlockAchievements(); // Check achievements when day completion status changes
+    checkAndUnlockAchievements();
   }, [dayCompletion, checkAndUnlockAchievements]);
 
 
   const saveAnswer = useCallback((taskId: string, answer: any, isCorrect: boolean) => {
-    setUserProgress(prevProgress => ({
-      ...prevProgress,
-      [taskId]: { answer, isCorrect, timestamp: Date.now() },
-    }));
+    setUserProgress(prevProgress => {
+      const prevTaskState = prevProgress[taskId];
+      const newAttempts = (prevTaskState?.attempts || 0) + 1;
+      return {
+        ...prevProgress,
+        [taskId]: { answer, isCorrect, timestamp: Date.now(), attempts: newAttempts },
+      };
+    });
     
-    // Determine dayId and update its completion status
-    // This will trigger the useEffect for dayCompletion, which in turn calls checkAndUnlockAchievements
     let dayIdToUpdate: string | null = null;
     for (const day of schedule) {
         for (const session of day.sessions) {
@@ -134,11 +135,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     if (dayIdToUpdate) {
         updateDayCompletionStatus(dayIdToUpdate);
     } else {
-      // If for some reason dayId is not found, still try to check achievements
-      // This case should ideally not happen with current data structure
       checkAndUnlockAchievements();
     }
-  }, [schedule, updateDayCompletionStatus, checkAndUnlockAchievements]); // Added checkAndUnlockAchievements
+  }, [schedule, updateDayCompletionStatus, checkAndUnlockAchievements]);
 
   const getTaskStatus = useCallback((taskId: string) => {
     return userProgress[taskId];
@@ -148,10 +147,23 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     return dayCompletion[dayId];
   }, [dayCompletion]);
 
-  // Initial calculation of day completion and achievements on load
   useEffect(() => {
     updateAllDaysCompletionStatus();
   }, [updateAllDaysCompletionStatus]);
+
+  const resetAllProgress = useCallback(() => {
+    if (window.confirm("Вы уверены, что хотите сбросить весь прогресс? Это действие необратимо.")) {
+      localStorage.removeItem('olympicCalendarProgress');
+      localStorage.removeItem('olympicCalendarDayCompletion');
+      localStorage.removeItem('olympicCalendarAchievements');
+      setUserProgress({});
+      setDayCompletion({});
+      setUnlockedAchievements({});
+      // setSelectedDate(null); // Optionally reset selected date
+      // setCurrentMonth(new Date(2025, 5, 1)); // Optionally reset current month
+      alert("Прогресс сброшен.");
+    }
+  }, []);
 
 
   return (
@@ -166,7 +178,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         setCurrentMonth,
         getDayCompletionStatus,
         achievementsData: achievementsDataList,
-        unlockedAchievements
+        unlockedAchievements,
+        resetAllProgress // Expose reset function
     }}>
       {children}
     </AppContext.Provider>

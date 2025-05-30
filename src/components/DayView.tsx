@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 import TaskCard from './TaskCard';
 import SessionCard from './SessionCard';
-import { DailySchedule, Session, Task } from '../types';
+import { DailySchedule, Session, Task, AnswerInputType } from '../types';
 import { formatSessionNameForDisplay } from '../utils/formatters';
 
 const DayView: React.FC = () => {
@@ -39,7 +39,10 @@ const DayView: React.FC = () => {
     setActiveSessionIndex(sessionIdx);
     const firstIncompleteTask = sessions[sessionIdx].tasks.findIndex(task => {
         const status = getTaskStatus(task.id);
-        return !status || (status.isCorrect === null || status.isCorrect === false && task.answerInputType !== 'parent_check');
+        // A task is incomplete if no status, or status is not correct AND it's not a parent_check task marked as 'completed'
+        return !status || (status.isCorrect === null || 
+                          (status.isCorrect === false && !(task.answerInputType === AnswerInputType.PARENT_CHECK && status.answer === 'completed'))
+                         );
     });
     setCurrentTaskInSessionIndex(firstIncompleteTask !== -1 ? firstIncompleteTask : 0);
     setShowSessionCompleteMessage(false);
@@ -52,7 +55,7 @@ const DayView: React.FC = () => {
     if (sessionIdx >= sessions.length) return false;
     return sessions[sessionIdx].tasks.every(task => {
         const status = getTaskStatus(task.id);
-        return status?.isCorrect || (task.answerInputType === 'parent_check' && status?.answer === 'completed');
+        return status?.isCorrect || (task.answerInputType === AnswerInputType.PARENT_CHECK && status?.answer === 'completed');
     });
   }
 
@@ -62,10 +65,10 @@ const DayView: React.FC = () => {
     } else if (currentSession && activeSessionIndex !== null) {
       const allSessionTasksDone = sessions[activeSessionIndex].tasks.every(task => {
         const status = getTaskStatus(task.id);
-        return status?.isCorrect || (task.answerInputType === 'parent_check' && status?.answer === 'completed');
+        return status?.isCorrect || (task.answerInputType === AnswerInputType.PARENT_CHECK && status?.answer === 'completed');
       });
-
-      setShowSessionCompleteMessage(allSessionTasksDone);
+      // Show complete message regardless, but button to next session might change
+      setShowSessionCompleteMessage(true);
     }
   };
 
@@ -80,7 +83,7 @@ const DayView: React.FC = () => {
     setShowSessionCompleteMessage(false);
   };
 
-  const handleStartNextSession = () => {
+  const handleStartNextBlockOfTasks = () => { // Renamed function
     if (activeSessionIndex !== null && activeSessionIndex < sessions.length - 1) {
       let nextIndexToStart = -1;
       for (let i = activeSessionIndex + 1; i < sessions.length; i++) {
@@ -92,18 +95,20 @@ const DayView: React.FC = () => {
       if (nextIndexToStart !== -1) {
           handleStartSession(nextIndexToStart);
       } else {
+          // All subsequent sessions are also completed
           handleReturnToSessions();
       }
     } else {
+      // No more sessions or current is last
       handleReturnToSessions(); 
     }
   };
   
-  let nextUncompletedSessionIndex = -1;
+  let nextUncompletedBlockIndex = -1; // Renamed variable
   if (activeSessionIndex !== null) {
     for (let i = activeSessionIndex + 1; i < sessions.length; i++) {
         if (!checkAllTasksInSessionCompleted(i)) {
-            nextUncompletedSessionIndex = i;
+            nextUncompletedBlockIndex = i;
             break;
         }
     }
@@ -121,14 +126,14 @@ const DayView: React.FC = () => {
     return (
       <div className="w-full">
         {dayHeader}
-        <h3 className="text-2xl font-semibold text-slate-700 mb-4">Сессии на сегодня:</h3>
+        <h3 className="text-2xl font-semibold text-slate-700 mb-4">Задания на сегодня:</h3>
         <div className="space-y-4">
           {sessions.map((session, index) => (
             <SessionCard 
               key={index}
               session={session}
               sessionIndex={index}
-              onStartSession={handleStartSession}
+              onStartSession={handleStartSession} // This function name is internal, fine to keep
               dayId={currentDayId}
             />
           ))}
@@ -145,20 +150,20 @@ const DayView: React.FC = () => {
           {dayHeader}
           <div className="bg-green-50 p-6 sm:p-8 rounded-xl">
             <h3 className="text-3xl font-bold text-green-600 mb-4">🎉 Отлично! 🎉</h3>
-            <p className="text-xl text-slate-700 mb-6">Сессия "{displayedSessionName}" завершена!</p>
+            <p className="text-xl text-slate-700 mb-6">Задания "{displayedSessionName}" завершены!</p>
             <div className="space-y-3 sm:space-y-0 sm:space-x-3">
                 <button 
                     onClick={handleReturnToSessions}
                     className="w-full sm:w-auto px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-lg"
                 >
-                    К списку сессий
+                    К списку заданий
                 </button>
-                {nextUncompletedSessionIndex !== -1 && (
+                {nextUncompletedBlockIndex !== -1 && ( // Use renamed variable
                      <button 
-                        onClick={handleStartNextSession}
+                        onClick={handleStartNextBlockOfTasks} // Use renamed function
                         className="w-full sm:w-auto px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-lg"
                     >
-                        Следующая сессия!
+                        Следующие задания!
                     </button>
                 )}
             </div>
@@ -190,7 +195,7 @@ const DayView: React.FC = () => {
             onClick={handleReturnToSessions}
             className="w-full sm:w-auto px-6 py-2 bg-amber-300 text-amber-800 rounded-lg hover:bg-amber-400 transition-colors text-md"
             >
-             К списку сессий
+             К списку заданий
           </button>
           <button 
             onClick={handleNextTask}
@@ -200,7 +205,7 @@ const DayView: React.FC = () => {
                 : 'bg-blue-500 hover:bg-blue-600'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            {currentTaskInSessionIndex === currentSession.tasks.length - 1 ? 'Завершить сессию' : 'Далее'}
+            {currentTaskInSessionIndex === currentSession.tasks.length - 1 ? 'Завершить задания' : 'Далее'}
           </button>
         </div>
       </div>

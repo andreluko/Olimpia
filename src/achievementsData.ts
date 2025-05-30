@@ -1,5 +1,6 @@
-import { Achievement, AchievementCriteriaArgs, TaskCategory } from './types';
+import { Achievement, AchievementCriteriaArgs, TaskCategory, AnswerInputType } from './types';
 
+// Helper function to count completed tasks by category
 const countCorrectTasksByCategory = (userProgress: AchievementCriteriaArgs['userProgress'], schedule: AchievementCriteriaArgs['schedule'], category: TaskCategory): number => {
   let count = 0;
   for (const day of schedule) {
@@ -26,13 +27,13 @@ export const achievementsDataList: Achievement[] = [
   {
     id: 'morning_star',
     name: 'Утренняя звезда!',
-    description: 'Завершить первую утреннюю сессию.',
+    description: 'Завершить первые утренние задания.',
     icon: '☀️',
     criteria: ({ userProgress, schedule }) => {
       for (const day of schedule) {
         const morningSession = day.sessions.find(s => s.name.toLowerCase().includes('утренняя'));
         if (morningSession) {
-          const allTasksInSessionCompleted = morningSession.tasks.every(task => userProgress[task.id]?.isCorrect || (userProgress[task.id]?.answer === 'completed' && task.answerInputType === 'parent_check'));
+          const allTasksInSessionCompleted = morningSession.tasks.every(task => userProgress[task.id]?.isCorrect || (userProgress[task.id]?.answer === 'completed' && task.answerInputType === AnswerInputType.PARENT_CHECK));
           if (allTasksInSessionCompleted) return true;
         }
       }
@@ -42,13 +43,13 @@ export const achievementsDataList: Achievement[] = [
   {
     id: 'day_marathoner',
     name: 'Дневной марафонец!',
-    description: 'Завершить первую дневную сессию.',
+    description: 'Завершить первые дневные задания.',
     icon: '🏃',
     criteria: ({ userProgress, schedule }) => {
       for (const day of schedule) {
         const daySession = day.sessions.find(s => s.name.toLowerCase().includes('дневная'));
         if (daySession) {
-          const allTasksInSessionCompleted = daySession.tasks.every(task => userProgress[task.id]?.isCorrect || (userProgress[task.id]?.answer === 'completed' && task.answerInputType === 'parent_check'));
+          const allTasksInSessionCompleted = daySession.tasks.every(task => userProgress[task.id]?.isCorrect || (userProgress[task.id]?.answer === 'completed' && task.answerInputType === AnswerInputType.PARENT_CHECK));
           if (allTasksInSessionCompleted) return true;
         }
       }
@@ -64,14 +65,14 @@ export const achievementsDataList: Achievement[] = [
   },
   {
     id: 'session_triumph',
-    name: 'Триумфатор сессий!',
-    description: 'Завершить 3 любые сессии.',
+    name: 'Триумфатор блоков заданий!',
+    description: 'Завершить 3 любых блока заданий.',
     icon: '🏅',
     criteria: ({ userProgress, schedule }) => {
       let completedSessionsCount = 0;
       for (const day of schedule) {
         for (const session of day.sessions) {
-          const allTasksInSessionCompleted = session.tasks.every(task => userProgress[task.id]?.isCorrect || (userProgress[task.id]?.answer === 'completed' && task.answerInputType === 'parent_check'));
+          const allTasksInSessionCompleted = session.tasks.every(task => userProgress[task.id]?.isCorrect || (userProgress[task.id]?.answer === 'completed' && task.answerInputType === AnswerInputType.PARENT_CHECK));
           if (allTasksInSessionCompleted) {
             completedSessionsCount++;
             if (completedSessionsCount >= 3) return true;

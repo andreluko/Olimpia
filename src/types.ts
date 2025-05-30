@@ -60,6 +60,7 @@ export interface UserAnswer {
   answer: any;
   isCorrect: boolean | null; 
   timestamp?: number;
+  attempts?: number; // Added to track number of attempts
 }
 
 export interface UserProgress {
@@ -107,4 +108,5 @@ export interface AppContextType {
   getDayCompletionStatus: (dayId: string) => { completedTasks: number; totalTasks: number; isFullyCompleted: boolean } | undefined;
   achievementsData: Achievement[];
   unlockedAchievements: UnlockedAchievements;
+  resetAllProgress: () => void; // Added reset function
 }
