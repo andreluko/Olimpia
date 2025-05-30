@@ -24,7 +24,6 @@ const ParentStatsView: React.FC = () => {
 
   const handleResetProgress = () => {
     resetAllProgress();
-    // The view will automatically update due to context state changes
   };
 
   return (
@@ -72,7 +71,7 @@ const ParentStatsView: React.FC = () => {
             </div>
           );
         })}
-         {schedule.length === 0 && <p className="text-slate-500">Нет данных о прогрессе.</p>}
+         {totalDaysWithTasks === 0 && <p className="text-slate-500">Нет данных о прогрессе.</p>}
       </div>
 
       <div className="mt-10 pt-6 border-t border-slate-300">
