@@ -5,9 +5,10 @@ import DayView from './components/DayView';
 import { useAppContext } from './contexts/AppContext';
 import ParentStatsView from './components/ParentStatsView';
 import AchievementsView from './components/AchievementsView';
+import AchievementUnlockedModal from './components/AchievementUnlockedModal';
 
 const App: React.FC = () => {
-  const { setSelectedDate } = useAppContext();
+  const { setSelectedDate, newlyUnlockedAchievementToShow, clearNewlyUnlockedAchievementModal } = useAppContext();
 
   return (
     <HashRouter>
@@ -37,6 +38,12 @@ const App: React.FC = () => {
             </div>
         </footer>
       </div>
+      {newlyUnlockedAchievementToShow && (
+        <AchievementUnlockedModal
+          achievement={newlyUnlockedAchievementToShow}
+          onClose={clearNewlyUnlockedAchievementModal}
+        />
+      )}
     </HashRouter>
   );
 };

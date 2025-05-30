@@ -108,4 +108,6 @@ export interface AppContextType {
   achievementsData: Achievement[];
   unlockedAchievements: UnlockedAchievements;
   resetAllProgress: () => void;
+  newlyUnlockedAchievementToShow: Achievement | null;
+  clearNewlyUnlockedAchievementModal: () => void;
 }
