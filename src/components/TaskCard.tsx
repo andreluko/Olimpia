@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, FormEvent } from 'react';
 import { Task, AnswerInputType, TaskOption } from '../types';
 import { useAppContext } from '../contexts/AppContext';
@@ -101,14 +102,13 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
     if (taskStatus?.isCorrect && task.answerInputType !== AnswerInputType.PARENT_CHECK) return;
     if (taskStatus?.isCorrect && task.answerInputType === AnswerInputType.PARENT_CHECK && taskStatus.answer === 'completed') return;
 
-
     let answerToSubmit = userAnswer;
     if (task.answerInputType === AnswerInputType.CHECKBOX) {
       answerToSubmit = selectedCheckboxes;
     }
     
     if (task.answerInputType === AnswerInputType.PARENT_CHECK) {
-        saveAnswer(task.id, 'completed', true); // For PARENT_CHECK, isCorrect is true when 'completed'
+        saveAnswer(task.id, 'completed', true);
         setFeedback({ message: 'Отлично, задание отмечено!', type: 'correct' });
         return;
     }
@@ -205,7 +205,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           {feedback.message}
         </div>
       )}
-      {/* Removed the part that shows the correct answer on incorrect feedback */}
     </div>
   );
 };

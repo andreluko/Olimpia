@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { Link } from 'react-router-dom';
@@ -66,6 +67,11 @@ const ParentStatsView: React.FC = () => {
                 <div 
                   className={`h-2.5 rounded-full ${status.isFullyCompleted ? 'bg-green-500' : 'bg-yellow-500'}`}
                   style={{ width: `${progressPercentage}%` }}
+                  aria-valuenow={progressPercentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  role="progressbar"
+                  aria-label={`Прогресс для ${new Date(day.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}`}
                 ></div>
               </div>
             </div>

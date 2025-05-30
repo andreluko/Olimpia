@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import june2025Schedule from '../data';
 import { DailySchedule, UserProgress, Task, Session, AppContextType, DayCompletionStatus, UnlockedAchievements, AnswerInputType, UserAnswer } from '../types';
@@ -43,7 +44,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           if (achievement.criteria({ userProgress, dayCompletion, schedule })) {
             newUnlocks[achievement.id] = { unlockedAt: new Date().toISOString() };
             hasNewUnlock = true;
-            console.log(`Achievement unlocked: ${achievement.name}`);
+            // console.log(`Achievement unlocked: ${achievement.name}`);
           }
         }
       });
@@ -135,8 +136,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     if (dayIdToUpdate) {
         updateDayCompletionStatus(dayIdToUpdate);
     } else {
-      // This case should ideally not happen if tasks are always part of a day,
-      // but as a fallback, still check achievements.
       checkAndUnlockAchievements();
     }
   }, [schedule, updateDayCompletionStatus, checkAndUnlockAchievements]);
@@ -149,12 +148,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     return dayCompletion[dayId];
   }, [dayCompletion]);
 
-  // Initial calculation of all day completion statuses and achievements
   useEffect(() => {
     updateAllDaysCompletionStatus();
-    // checkAndUnlockAchievements will be called by the useEffect for dayCompletion
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schedule]); // Recalculate if schedule data itself changes, though it's static here
+  }, [schedule, updateAllDaysCompletionStatus]);
 
   const resetAllProgress = useCallback(() => {
     if (window.confirm("Вы уверены, что хотите сбросить весь прогресс? Это действие необратимо.")) {
@@ -162,9 +158,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       localStorage.removeItem('olympicCalendarDayCompletion');
       localStorage.removeItem('olympicCalendarAchievements');
       setUserProgress({});
-      setDayCompletion({}); // This will trigger its own useEffect to check achievements
+      setDayCompletion({}); 
       setUnlockedAchievements({});
-      // Optionally, reset navigation state:
       // setSelectedDate(null); 
       // setCurrentMonth(new Date(2025, 5, 1)); 
       alert("Прогресс сброшен.");
@@ -185,7 +180,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         getDayCompletionStatus,
         achievementsData: achievementsDataList,
         unlockedAchievements,
-        resetAllProgress // Expose reset function
+        resetAllProgress 
     }}>
       {children}
     </AppContext.Provider>

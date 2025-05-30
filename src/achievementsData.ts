@@ -1,3 +1,4 @@
+
 import { Achievement, AchievementCriteriaArgs, TaskCategory, AnswerInputType } from './types';
 
 // Helper function to count completed tasks by category
@@ -65,8 +66,8 @@ export const achievementsDataList: Achievement[] = [
   },
   {
     id: 'session_triumph',
-    name: 'Триумфатор блоков заданий!', // Changed
-    description: 'Завершить 3 любых блока заданий.', // Changed
+    name: 'Триумфатор блоков заданий!',
+    description: 'Завершить 3 любых блока заданий.',
     icon: '🏅',
     criteria: ({ userProgress, schedule }) => {
       let completedSessionsCount = 0;
