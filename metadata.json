@@ -1,0 +1,5 @@
+{
+  "name": "Olympic Calendar Tasks",
+  "description": "A React web application that provides a daily schedule of olympiad-style tasks for children, focusing on June 2025. It includes a calendar view, daily task view, and progress tracking.",
+  "requestFramePermissions": []
+}
