@@ -7,5 +7,5 @@ export default defineConfig({
   // IMPORTANT: For GitHub Pages deployment, uncomment and set this to your repository name.
   // For example, if your repo URL is https://YourUsername.github.io/YourRepoName/,
   // then base should be '/YourRepoName/'.
-  // base: '/YourRepoName/', 
+  base: '/Olimpia/', 
 })
