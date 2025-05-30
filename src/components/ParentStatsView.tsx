@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { Link } from 'react-router-dom';
-import { Task, AnswerInputType } from '../types'; // Импортируем типы
+import { Task, AnswerInputType, TaskCategory } from '../types'; // Импортируем типы
+
+interface CategoryStats {
+  correct: number;
+  attempted: number;
+  totalInSchedule: number;
+}
 
 const ParentStatsView: React.FC = () => {
-  const { schedule, getDayCompletionStatus, resetAllProgress } = useAppContext();
+  const { schedule, getDayCompletionStatus, resetAllProgress, userProgress } = useAppContext();
 
   let totalDaysWithTasks = 0;
   let totalCompletedDays = 0;
@@ -23,6 +29,52 @@ const ParentStatsView: React.FC = () => {
     }
   });
 
+  const categoryStats = useMemo(() => {
+    const stats: Record<TaskCategory, CategoryStats> = {} as Record<TaskCategory, CategoryStats>;
+
+    // Initialize stats for all categories present in the schedule
+    schedule.forEach(day => {
+      day.sessions.forEach(session => {
+        session.tasks.forEach(task => {
+          if (!stats[task.category]) {
+            stats[task.category] = { correct: 0, attempted: 0, totalInSchedule: 0 };
+          }
+          stats[task.category].totalInSchedule++;
+        });
+      });
+    });
+
+    // Populate attempted and correct counts from userProgress
+    Object.keys(userProgress).forEach(taskId => {
+      const taskProgress = userProgress[taskId];
+      let taskDetails: Task | undefined;
+
+      // Find the task in the schedule to get its category
+      for (const day of schedule) {
+        for (const session of day.sessions) {
+          taskDetails = session.tasks.find(t => t.id === taskId);
+          if (taskDetails) break;
+        }
+        if (taskDetails) break;
+      }
+
+      if (taskDetails && stats[taskDetails.category]) {
+        stats[taskDetails.category].attempted++;
+        if (taskProgress.isCorrect) {
+          stats[taskDetails.category].correct++;
+        }
+      }
+    });
+
+    return Object.entries(stats)
+      .map(([category, data]) => ({
+        name: category as TaskCategory,
+        ...data,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by category name
+  }, [schedule, userProgress]);
+
+
   const handleResetProgress = () => {
     if (window.confirm("Вы уверены, что хотите сбросить весь прогресс? Это действие удалит все ваши ответы, завершенные дни и полученные достижения. Это действие необратимо.")) {
       resetAllProgress();
@@ -33,7 +85,6 @@ const ParentStatsView: React.FC = () => {
     const { correctAnswer, answerInputType, options } = task;
 
     if (answerInputType === AnswerInputType.PARENT_CHECK) {
-        // Для PARENT_CHECK, correctAnswer часто содержит текстовое описание, что проверять
         return typeof correctAnswer === 'string' ? correctAnswer : "Проверяется родителем";
     }
     if (answerInputType === AnswerInputType.RADIO && options && typeof correctAnswer === 'string') {
@@ -50,7 +101,7 @@ const ParentStatsView: React.FC = () => {
         return correctAnswer.join(', ');
     }
     if (Array.isArray(correctAnswer)) {
-        return correctAnswer.join(' или '); // Если несколько текстовых вариантов
+        return correctAnswer.join(' или '); 
     }
     return String(correctAnswer);
   };
@@ -102,6 +153,34 @@ const ParentStatsView: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Успеваемость по категориям */}
+      <div className="mt-10 pt-6 border-t border-slate-300">
+        <h3 className="text-2xl font-semibold text-slate-700 mb-4">Успеваемость по категориям</h3>
+        <div className="space-y-4">
+          {categoryStats.map(stat => {
+            const successPercentage = stat.attempted > 0 ? (stat.correct / stat.attempted) * 100 : 0;
+            return (
+              <div key={stat.name} className="p-4 bg-indigo-50 rounded-lg">
+                <h4 className="text-xl font-bold text-indigo-800 mb-2">{stat.name}</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm text-slate-600 mb-2">
+                  <p>Верно: <span className="font-semibold text-green-600">{stat.correct}</span></p>
+                  <p>Попыток: <span className="font-semibold">{stat.attempted}</span></p>
+                  <p>Всего в расписании: <span className="font-semibold">{stat.totalInSchedule}</span></p>
+                  <p>Успех: <span className="font-semibold">{successPercentage.toFixed(0)}%</span></p>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-2.5">
+                  <div
+                    className="bg-indigo-500 h-2.5 rounded-full"
+                    style={{ width: `${successPercentage}%` }}
+                  ></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
 
       {/* Раздел с ответами к заданиям */}
       <div className="mt-10 pt-6 border-t border-slate-300">
