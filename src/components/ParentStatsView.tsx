@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { Link } from 'react-router-dom';
 
 const ParentStatsView: React.FC = () => {
-  const { schedule, getDayCompletionStatus, resetAllProgress } = useAppContext();
+  const { schedule, getDayCompletionStatus } = useAppContext();
 
   let totalDaysWithTasks = 0;
   let totalCompletedDays = 0;
@@ -22,10 +21,6 @@ const ParentStatsView: React.FC = () => {
       }
     }
   });
-
-  const handleResetProgress = () => {
-    resetAllProgress();
-  };
 
   return (
     <div className="p-4">
@@ -67,29 +62,11 @@ const ParentStatsView: React.FC = () => {
                 <div 
                   className={`h-2.5 rounded-full ${status.isFullyCompleted ? 'bg-green-500' : 'bg-yellow-500'}`}
                   style={{ width: `${progressPercentage}%` }}
-                  aria-valuenow={progressPercentage}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  role="progressbar"
-                  aria-label={`Прогресс для ${new Date(day.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}`}
                 ></div>
               </div>
             </div>
           );
         })}
-         {totalDaysWithTasks === 0 && <p className="text-slate-500">Нет данных о прогрессе.</p>}
-      </div>
-
-      <div className="mt-10 pt-6 border-t border-slate-300">
-        <h3 className="text-xl font-semibold text-red-600 mb-3">Опасная зона</h3>
-        <button
-          onClick={handleResetProgress}
-          className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
-          aria-label="Сбросить весь прогресс"
-        >
-          Сбросить весь прогресс
-        </button>
-        <p className="text-sm text-slate-500 mt-2">Внимание: это действие удалит все ваши ответы и достижения.</p>
       </div>
     </div>
   );
