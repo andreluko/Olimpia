@@ -179,9 +179,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-white via-slate-50 to-sky-50 p-6 rounded-xl mb-6">
-      <p className="text-sm text-indigo-500 font-semibold mb-1">{task.category}{task.source ? ` (${task.source})` : ''}</p>
-      <p className="text-xl text-slate-800 mb-4 leading-relaxed whitespace-pre-line">{task.text}</p>
+    <div className="bg-white p-6 rounded-xl mb-6 shadow-xl border border-slate-200">
+      <p className="text-sm text-slate-600 font-medium mb-2">{task.category}{task.source ? ` (${task.source})` : ''}</p>
+      <p className="text-2xl text-gray-900 mb-6 leading-relaxed whitespace-pre-line">{task.text}</p>
       
       {task.requiresParentalDrawing && (
         <p className="text-sm text-orange-600 bg-orange-100 p-2 rounded-md mb-4">🎨 Это задание предполагает рисование на бумаге с помощью родителя.</p>
