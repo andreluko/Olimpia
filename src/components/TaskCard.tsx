@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, FormEvent } from 'react';
-import { Task, AnswerInputType, TaskOption } from '../types';
+import { Task, AnswerInputType, TaskOption, UserAnswer } from '../types';
 import { useAppContext } from '../contexts/AppContext';
 
 interface TaskCardProps {
@@ -19,6 +20,47 @@ const XMarkIcon: React.FC = () => (
   </svg>
 );
 
+const getInputPlaceholder = (task: Task, currentTaskStatus: UserAnswer | undefined): string | undefined => {
+  if (currentTaskStatus?.isCorrect || (task.answerInputType === AnswerInputType.PARENT_CHECK && currentTaskStatus?.answer === 'completed')) {
+    return undefined; 
+  }
+
+  switch (task.answerInputType) {
+    case AnswerInputType.TEXT:
+    case AnswerInputType.TEXTAREA:
+      const correctAnswerString = String(task.correctAnswer);
+      if (correctAnswerString.match(/[,;-]/) && correctAnswerString.length < 40) {
+        return correctAnswerString; 
+      }
+      if (correctAnswerString === correctAnswerString.toLowerCase() && correctAnswerString !== correctAnswerString.toUpperCase() && correctAnswerString.length > 0) {
+        return "ответ маленькими буквами";
+      }
+      if (correctAnswerString === correctAnswerString.toUpperCase() && correctAnswerString !== correctAnswerString.toLowerCase() && correctAnswerString.length > 0) {
+        return "ОТВЕТ БОЛЬШИМИ БУКВАМИ";
+      }
+      if (correctAnswerString.length > 0 && 
+          correctAnswerString[0] === correctAnswerString[0].toUpperCase() && 
+          correctAnswerString[0] !== correctAnswerString[0].toLowerCase() &&
+          (correctAnswerString.length === 1 || correctAnswerString.substring(1) !== correctAnswerString.substring(1).toUpperCase())) {
+        return "Ответ с большой буквы";
+      }
+      return "Твой ответ";
+
+    case AnswerInputType.NUMBER:
+      return "Введи число";
+
+    case AnswerInputType.TWO_NUMBERS_COMMA:
+      if (Array.isArray(task.correctAnswer) && task.correctAnswer.length === 2 && typeof task.correctAnswer[0] === 'number' && typeof task.correctAnswer[1] === 'number') {
+        return (task.correctAnswer as number[]).join(', ');
+      }
+      return "Число1, Число2"; 
+
+    default:
+      return undefined;
+  }
+};
+
+
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const { saveAnswer, getTaskStatus } = useAppContext();
   const [userAnswer, setUserAnswer] = useState<any>('');
@@ -29,7 +71,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const taskStatus = getTaskStatus(task.id);
 
   useEffect(() => {
-    setIncorrectAttempts(0); // Reset attempts when task changes
+    setIncorrectAttempts(0); 
     if (taskStatus) {
       if (task.answerInputType === AnswerInputType.CHECKBOX) {
         setSelectedCheckboxes(taskStatus.answer || []);
@@ -139,14 +181,15 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
     }
 
     const inputBaseClasses = "w-full p-3 rounded-lg text-lg bg-slate-100 focus:ring-2 focus:ring-blue-500 outline-none transition-colors";
+    const placeholderText = getInputPlaceholder(task, taskStatus);
 
     switch (task.answerInputType) {
       case AnswerInputType.TEXT:
-        return <input type="text" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} className={inputBaseClasses} />;
+        return <input type="text" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} className={inputBaseClasses} placeholder={placeholderText} />;
       case AnswerInputType.TEXTAREA:
-        return <textarea value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} rows={3} className={inputBaseClasses} />;
+        return <textarea value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} rows={3} className={inputBaseClasses} placeholder={placeholderText} />;
       case AnswerInputType.NUMBER:
-        return <input type="number" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} className={inputBaseClasses} />;
+        return <input type="number" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} className={inputBaseClasses} placeholder={placeholderText} />;
       case AnswerInputType.RADIO:
         return (
           <div className="space-y-2">
@@ -170,7 +213,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           </div>
         );
       case AnswerInputType.TWO_NUMBERS_COMMA:
-        return <input type="text" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} placeholder="Число1, Число2" className={inputBaseClasses} />;
+        return <input type="text" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} placeholder={placeholderText} className={inputBaseClasses} />;
       case AnswerInputType.PARENT_CHECK:
         return <p className="text-slate-600 text-lg my-2">Это задание проверяется или выполняется с помощью родителя.</p>;
       default:
@@ -208,7 +251,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           {feedback.message}
         </div>
       )}
-      {/* Удален прямой показ правильного ответа */}
     </div>
   );
 };
