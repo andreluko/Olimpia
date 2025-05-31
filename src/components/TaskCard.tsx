@@ -29,9 +29,13 @@ const getInputPlaceholder = (task: Task, currentTaskStatus: UserAnswer | undefin
     case AnswerInputType.TEXT:
     case AnswerInputType.TEXTAREA:
       const correctAnswerString = String(task.correctAnswer);
-      if (correctAnswerString.match(/[,;-]/) && correctAnswerString.length < 40) {
-        return correctAnswerString; 
+      if (correctAnswerString.includes(',')) {
+        return "слово1, слово2, слово3"; 
       }
+      if (correctAnswerString.includes('-')) {
+        return "часть1-часть2";
+      }
+      // Logic for capitalization hints for single words
       if (correctAnswerString === correctAnswerString.toLowerCase() && correctAnswerString !== correctAnswerString.toUpperCase() && correctAnswerString.length > 0) {
         return "ответ маленькими буквами";
       }
@@ -50,10 +54,7 @@ const getInputPlaceholder = (task: Task, currentTaskStatus: UserAnswer | undefin
       return "Введи число";
 
     case AnswerInputType.TWO_NUMBERS_COMMA:
-      if (Array.isArray(task.correctAnswer) && task.correctAnswer.length === 2 && typeof task.correctAnswer[0] === 'number' && typeof task.correctAnswer[1] === 'number') {
-        return (task.correctAnswer as number[]).join(', ');
-      }
-      return "Число1, Число2"; 
+      return "Например: 7, 12"; 
 
     default:
       return undefined;
