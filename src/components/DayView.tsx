@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAppContext } from '../contexts/AppContext';
 import TaskCard from './TaskCard';
 import SessionCard from './SessionCard';
-import { DailySchedule, Session, Task } from '../types';
+import { Session, Task } from '../types';
 import { formatSessionNameForDisplay } from '../utils/formatters';
 
 const DayView: React.FC = () => {
@@ -110,10 +110,12 @@ const DayView: React.FC = () => {
   }
 
   const dayHeader = (
-    <div className="mb-6 p-4 bg-gradient-to-r from-sky-100 to-indigo-100 rounded-lg">
-      <Link to="/" className="text-blue-600 hover:underline text-sm mb-2 inline-block">&larr; К календарю</Link>
-      <h2 className="text-3xl font-bold text-slate-800">{title}</h2>
-      <p className="text-slate-600 text-lg">{new Date(date).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+    <div className="mb-4 p-3 bg-gradient-to-r from-sky-100 to-indigo-100 rounded-lg">
+      <div className="flex items-baseline gap-x-3">
+        <Link to="/" className="text-blue-600 hover:underline text-xs sm:text-sm whitespace-nowrap">&larr; К календарю</Link>
+        <h2 className="text-lg sm:text-xl font-semibold text-slate-800 leading-tight">{title}</h2>
+        <p className="text-xs sm:text-sm text-slate-600 whitespace-nowrap">{new Date(date).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+      </div>
     </div>
   );
 
